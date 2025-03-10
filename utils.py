@@ -1,16 +1,26 @@
 import chardet
+import os
 import torch
 from transformers import TrainerCallback
+
+def detect_encoding(path):
+	with open(path, "rb") as f:
+		return chardet.detect(f.read(1000))["encoding"]
 
 def determine_functions(seed):
 	torch.manual_seed(seed)
 	torch.cuda.manual_seed_all(seed)
 	torch.backends.cudnn.deterministic = True
 	torch.backends.cudnn.benchmark = False
+	if torch.cuda.is_available():
+		torch.cuda.empty_cache()
 
-def detect_encoding(path):
-	with open(path, "rb") as f:
-		return chardet.detect(f.read(1000))["encoding"]
+def initialise_repository(root_path):
+	os.makedirs(os.path.join(root_path, "models"), exist_ok=True)
+	os.makedirs(os.path.join(root_path, "inputs"), exist_ok=True)
+
+# def in_vocabulary(word):
+# 	return not(MODEL_PROCESSOR.tokenizer.get_vocab().get(word) is None)
 
 class LossLoggerCallback(TrainerCallback):
 	def __init__(self, log_path):
